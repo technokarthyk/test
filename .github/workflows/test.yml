@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main  # or the branch you want to test on
-  pull_request:
-    branches:
-      - main
+  
+    paths-ignore:
+      - '.github/workflows/**'
 
 jobs:
   test_pipeline:
