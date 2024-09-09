@@ -1,0 +1,36 @@
+name: Test-Pipeline-Steps
+
+on:
+  push:
+    branches:
+      - main  # or the branch you want to test on
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test_pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          path: repo-checkout
+
+      - name: Print Hello World
+        run: echo "Hello World - Pipeline is working!"
+
+      - name: List Files in Repository
+        run: |
+          echo "Listing files in the repository:"
+          ls -R
+
+      - name: Print Current Date
+        run: date
+
+      - name: Show System Information
+        run: uname -a
+
+      - name: Success Message
+        run: echo "Test pipeline ran successfully!"
