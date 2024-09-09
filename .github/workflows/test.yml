@@ -3,7 +3,7 @@ name: Test-Pipeline-Steps.........
 on:
   push:
     branches:
-      - main  # or the branch you want to test on
+      - qa 
   
     paths-ignore:
       - '.github/workflows/**'
