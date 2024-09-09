@@ -1,4 +1,4 @@
-name: Test-Pipeline-Steps.........
+name: Test-Pipeline
 
 on:
   push:
