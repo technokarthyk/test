@@ -1,0 +1,49 @@
+name: Auto Deploy on Tag
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger for tags like v1.0.0, v2.1.1, etc.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract tag and decide environment
+        id: set-env
+        run: |
+          TAG_NAME="${GITHUB_REF##*/}"
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          # Decide environment based on tag
+          if [[ "$TAG_NAME" == v1.* ]]; then
+            echo "DEPLOY_ENV=dev" >> $GITHUB_ENV
+          elif [[ "$TAG_NAME" == v2.* ]]; then
+            echo "DEPLOY_ENV=qa" >> $GITHUB_ENV
+          elif [[ "$TAG_NAME" == v3.* ]]; then
+            echo "DEPLOY_ENV=prod" >> $GITHUB_ENV
+          else
+            echo "Unknown tag pattern: $TAG_NAME"
+            exit 1
+          fi
+
+      - name: Checkout code at tag
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.set-env.outputs.tag_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+
+      - name: Show chosen environment
+        run: |
+          echo "Tag: $TAG_NAME"
+          echo "Deploying to environment: $DEPLOY_ENV"
+
+      - name: Deploy
+        run: |
+          echo "🚀 Deploying tag $TAG_NAME to $DEPLOY_ENV environment"
+          # Insert real deployment commands here
