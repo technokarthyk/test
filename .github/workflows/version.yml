@@ -1,58 +1,38 @@
-name: Manual Deploy to Environment
+name: Manual Deploy Across Branches
 
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Git Tag (e.g., v1.0.0)'
+      source_branch:
+        description: 'Source branch (where this workflow is triggered from)'
         required: true
         type: string
-      environment:
-        description: 'Target Environment (dev, qa, prod)'
+        default: dev
+      destination_branch:
+        description: 'Destination branch (to deploy code to)'
         required: true
         type: choice
         options:
           - dev
           - qa
-          - prod
+          - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    environment: ${{ github.event.inputs.environment }}
-
     steps:
-      - name: Checkout code
+      - name: Show inputs
+        run: |
+          echo "Triggered from source branch: ${{ github.event.inputs.source_branch }}"
+          echo "Deploying to destination branch: ${{ github.event.inputs.destination_branch }}"
+
+      - name: Checkout source branch
         uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          ref: ${{ github.event.inputs.source_branch }}
 
-      - name: Show selected inputs
+      - name: Merge into destination branch (simulated)
         run: |
-          echo "Selected tag: ${{ github.event.inputs.tag }}"
-          echo "Selected environment: ${{ github.event.inputs.environment }}"
-
-      - name: Deploy to selected environment
-        run: |
-          case "${{ github.event.inputs.environment }}" in
-            dev)
-              echo "Deploying tag ${{ github.event.inputs.tag }} to DEV"
-              # Add your DEV deployment logic here
-              ;;
-            qa)
-              echo "Deploying tag ${{ github.event.inputs.tag }} to QA"
-              # Add your QA deployment logic here
-              ;;
-            prod)
-              echo "Deploying tag ${{ github.event.inputs.tag }} to PROD"
-              # Add your PROD deployment logic here
-              ;;
-            *)
-              echo "Unknown environment selected"
-              exit 1
-              ;;
-          esac
+          echo "Simulating merge or deployment logic from ${{ github.event.inputs.source_branch }} to ${{ github.event.inputs.destination_branch }}"
+          # Actual deployment or merge commands go here
