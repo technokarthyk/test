@@ -1,9 +1,12 @@
-name: Deploy to Environment
+name: Manual Deploy to Environment
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git Tag (e.g., v1.0.0)'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -13,29 +16,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python (or Node, .NET, etc.)
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      - name: Extract tag version
-        id: extract_tag
+      - name: Read tag input
         run: |
-          echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "Tag name is ${{ env.TAG_NAME }}"
+          echo "TAG_NAME=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+          echo "Tag name provided: ${{ github.event.inputs.tag }}"
 
       - name: Deploy based on tag
         run: |
           if [[ "${{ env.TAG_NAME }}" == "v1.0.0" ]]; then
             echo "Deploying to DEV"
-            # your deployment logic here
+            # Add your DEV deployment logic here
           elif [[ "${{ env.TAG_NAME }}" == "v1.0.1" ]]; then
             echo "Deploying to QA"
-            # your deployment logic here
+            # Add your QA deployment logic here
           elif [[ "${{ env.TAG_NAME }}" == "v2.0.0" ]]; then
             echo "Deploying to PROD"
-            # your deployment logic here
+            # Add your PROD deployment logic here
           else
-            echo "Tag does not match any environment"
+            echo "Unknown tag, no matching environment."
             exit 1
           fi
