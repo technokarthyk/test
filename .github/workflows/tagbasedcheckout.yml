@@ -1,4 +1,4 @@
-name: Auto Deploy on Tag
+name: tagbasedcheckout
 
 on:
   push:
