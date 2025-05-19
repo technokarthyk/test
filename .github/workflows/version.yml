@@ -7,10 +7,20 @@ on:
         description: 'Git Tag (e.g., v1.0.0)'
         required: true
         type: string
+      environment:
+        description: 'Target Environment (dev, qa, prod)'
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    environment: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout code
@@ -21,23 +31,28 @@ jobs:
         with:
           python-version: 3.11
 
-      - name: Read tag input
+      - name: Show selected inputs
         run: |
-          echo "TAG_NAME=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
-          echo "Tag name provided: ${{ github.event.inputs.tag }}"
+          echo "Selected tag: ${{ github.event.inputs.tag }}"
+          echo "Selected environment: ${{ github.event.inputs.environment }}"
 
-      - name: Deploy based on tag
+      - name: Deploy to selected environment
         run: |
-          if [[ "${{ env.TAG_NAME }}" == "v1.0.0" ]]; then
-            echo "Deploying to DEV"
-            # Add your DEV deployment logic here
-          elif [[ "${{ env.TAG_NAME }}" == "v1.0.1" ]]; then
-            echo "Deploying to QA"
-            # Add your QA deployment logic here
-          elif [[ "${{ env.TAG_NAME }}" == "v2.0.0" ]]; then
-            echo "Deploying to PROD"
-            # Add your PROD deployment logic here
-          else
-            echo "Unknown tag, no matching environment."
-            exit 1
-          fi
+          case "${{ github.event.inputs.environment }}" in
+            dev)
+              echo "Deploying tag ${{ github.event.inputs.tag }} to DEV"
+              # Add your DEV deployment logic here
+              ;;
+            qa)
+              echo "Deploying tag ${{ github.event.inputs.tag }} to QA"
+              # Add your QA deployment logic here
+              ;;
+            prod)
+              echo "Deploying tag ${{ github.event.inputs.tag }} to PROD"
+              # Add your PROD deployment logic here
+              ;;
+            *)
+              echo "Unknown environment selected"
+              exit 1
+              ;;
+          esac
