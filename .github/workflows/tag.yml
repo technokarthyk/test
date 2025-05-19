@@ -1,0 +1,30 @@
+name: Deploy on Tag
+
+on:
+  push:
+    tags:
+      - '*'  # Triggers on any tag
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: [staging, production]  # Define your environments here
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (or your runtime)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Deploy to ${{ matrix.environment }}
+        env:
+          ENVIRONMENT: ${{ matrix.environment }}
+        run: |
+          echo "Deploying tag $GITHUB_REF to $ENVIRONMENT environment"
+          # Add your deployment script or command here
