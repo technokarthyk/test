@@ -12,6 +12,7 @@ on:
           - qa
           - stage
           - prod
+          - main
       rollback_tag:
         description: 'Git tag to rollback to (e.g., v1.0.12)'
         required: true
