@@ -18,6 +18,7 @@ on:
         required: true
 
 permissions:
+  deployments: write # Allows the workflow to trigger other workflows
   contents: write  # Allows the workflow to write to the repository
 
 jobs:
@@ -28,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
