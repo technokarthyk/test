@@ -1,0 +1,57 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback (qa, stage, prod)'
+        required: true
+        type: choice
+        options:
+          - qa
+          - stage
+          - prod
+      rollback_tag:
+        description: 'Tag to rollback to (e.g., v1.2.3-prod)'
+        required: true
+
+jobs:
+  rollback:
+    name: Rollback ${{ github.event.inputs.environment }} to ${{ github.event.inputs.rollback_tag }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # required to access all tags
+
+      - name: Verify rollback tag exists
+        run: |
+          TAG=${{ github.event.inputs.rollback_tag }}
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "❌ Tag $TAG does not exist"
+            exit 1
+          fi
+
+      - name: Reset branch to rollback tag
+        run: |
+          ENV=${{ github.event.inputs.environment }}
+          TAG=${{ github.event.inputs.rollback_tag }}
+
+          # Optionally map env to branch
+          BRANCH="deploy/$ENV"
+
+          echo "Rolling back branch $BRANCH to tag $TAG"
+
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          git checkout $BRANCH
+          git reset --hard $TAG
+          git push origin $BRANCH --force
+          
+      - name: Trigger Deployment (Optional)
+        if: github.event.inputs.environment == 'prod'
+        run: |
+          echo "Trigger your deploy pipeline here or via webhook"
