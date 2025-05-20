@@ -17,6 +17,9 @@ on:
         description: 'Git tag to rollback to (e.g., v1.0.12)'
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   rollback:
     name: Rollback ${{ github.event.inputs.environment }} to ${{ github.event.inputs.rollback_tag }}
