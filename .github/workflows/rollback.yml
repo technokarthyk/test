@@ -18,9 +18,8 @@ on:
         required: true
 
 permissions:
-  contents: write
- # workflows: write
-
+  contents: write  # Allows the workflow to write to the repository
+  #workflows: write # Allows the workflow to trigger other workflows
 
 jobs:
   rollback:
@@ -30,7 +29,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
