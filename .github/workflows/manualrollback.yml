@@ -13,13 +13,16 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write  # Required for pushing tags
 
 jobs:
   rollback:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Docker Login to ACR
         uses: azure/docker-login@v1
         with:
@@ -34,3 +37,22 @@ jobs:
           docker pull spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag }}
           docker tag spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag }} spiritacr.azurecr.io/sds-reports-api:latest
           docker push spiritacr.azurecr.io/sds-reports-api:latest
+
+      - name: Create rollback tag pointing to commit
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git fetch origin
+          git tag -a rollback-${{ github.event.inputs.rollback_tag }} -m "Rollback to commit ${{ github.event.inputs.commit_id }}" ${{ github.event.inputs.commit_id }}
+          git push origin rollback-${{ github.event.inputs.rollback_tag }}
+
+      - name: Save rollback metadata
+        run: |
+          echo "Rollback Tag: ${{ github.event.inputs.rollback_tag }}" > rollback-info.txt
+          echo "Commit ID: ${{ github.event.inputs.commit_id }}" >> rollback-info.txt
+
+      - name: Upload rollback info
+        uses: actions/upload-artifact@v3
+        with:
+          name: rollback-info
+          path: rollback-info.txt
