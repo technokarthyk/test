@@ -1,58 +1,28 @@
-name: Manual Rollback
+name: polaris-reports-deployment
 
 on:
-  workflow_dispatch:
-    inputs:
-      rollback_tag:
-        description: "Enter the version tag to roll back to (e.g., v1.0.0)"
-        required: true
-        type: string
-      commit_id:
-        description: "Enter the commit ID to associate with this rollback"
-        required: true
-        type: string
-
-permissions:
-  contents: write  # Required for pushing tags
-
-jobs:
-  rollback:
+  push:
+    branches:
+      - main
+      
+jobs: 
+  build_and_deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Docker Login to ACR
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: feature/workflow_changes
+      - name: Docker Login to Dev ACR
         uses: azure/docker-login@v1
         with:
           login-server: spiritacr.azurecr.io
           username: spiritacr
           password: lSdbeMIO9eEmCLGyn/qFW3ti7ecDEorsTT81T5q8Q1+ACRCp2bHb
 
-      - name: Pull and Re-tag Image
+      - name: Build and Push Dev Docker Image
         run: |
-          echo "Rolling back to version: ${{ github.event.inputs.rollback_tag }}"
-          echo "Associated commit ID: ${{ github.event.inputs.commit_id }}"
-          docker pull spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag }}
-          docker tag spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag }} spiritacr.azurecr.io/sds-reports-api:latest
+          docker build -t spiritacr.azurecr.io/sds-reports-api:${{ github.sha }} .
+          docker tag spiritacr.azurecr.io/sds-reports-api:${{ github.sha }} spiritacr.azurecr.io/sds-reports-api:latest
+          echo "Pushing Dev Docker image to ACR..."
           docker push spiritacr.azurecr.io/sds-reports-api:latest
-
-      - name: Create rollback tag pointing to commit
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git fetch origin
-          git tag -a rollback-${{ github.event.inputs.rollback_tag }} -m "Rollback to commit ${{ github.event.inputs.commit_id }}" ${{ github.event.inputs.commit_id }}
-          git push origin rollback-${{ github.event.inputs.rollback_tag }}
-
-      - name: Save rollback metadata
-        run: |
-          echo "Rollback Tag: ${{ github.event.inputs.rollback_tag }}" > rollback-info.txt
-          echo "Commit ID: ${{ github.event.inputs.commit_id }}" >> rollback-info.txt
-
-      - name: Upload rollback info
-        uses: actions/upload-artifact@v3
-        with:
-          name: rollback-info
-          path: rollback-info.txt
