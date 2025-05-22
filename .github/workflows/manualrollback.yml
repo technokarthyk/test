@@ -7,6 +7,10 @@ on:
         description: "Enter the commit ID to roll back to (e.g., abc1234)"
         required: true
         type: string
+      version:
+        description: "Enter the version number to roll back to (e.g., v1.0.0)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -21,10 +25,11 @@ jobs:
         with:
           login-server: spiritacr.azurecr.io
           username: spiritacr
-          password: lSdbeMIO9eEmCLGyn/qFW3ti7ecDEorsTT81T5q8Q1+ACRCp2bHb
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Pull and Re-tag Image
         run: |
+          echo "Rolling back to commit ID: ${{ github.event.inputs.commit_id }} and version: ${{ github.event.inputs.version }}"
           docker pull spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.commit_id }}
           docker tag spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.commit_id }} spiritacr.azurecr.io/sds-reports-api:latest
           docker push spiritacr.azurecr.io/sds-reports-api:latest
