@@ -25,7 +25,7 @@ jobs:
         with:
           login-server: spiritacr.azurecr.io
           username: spiritacr
-          password: ${{ secrets.ACR_PASSWORD }}
+          password: lSdbeMIO9eEmCLGyn/qFW3ti7ecDEorsTT81T5q8Q1+ACRCp2bHb
 
       - name: Display Inputs
         run: |
