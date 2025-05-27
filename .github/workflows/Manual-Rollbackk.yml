@@ -1,4 +1,4 @@
-name: Manual-Rollbackk
+name: Manual or Webhook Rollback
 
 on:
   workflow_dispatch:
@@ -11,6 +11,9 @@ on:
         description: "Enter the commit SHA to reference (optional)"
         required: false
         type: string
+
+  repository_dispatch:
+    types: [rollback-event]
 
 permissions:
   contents: read
@@ -29,11 +32,11 @@ jobs:
 
       - name: Display Inputs
         run: |
-          echo "Rolling back to tag: ${{ github.event.inputs.rollback_tag }}"
-          echo "Associated commit ID: ${{ github.event.inputs.commit_id }}"
+          echo "Rolling back to tag: ${{ github.event.inputs.rollback_tag || github.event.client_payload.rollback_tag }}"
+          echo "Associated commit ID: ${{ github.event.inputs.commit_id || github.event.client_payload.commit_id }}"
 
       - name: Pull and Re-tag Image
         run: |
-          docker pull spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag }}
-          docker tag spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag }} spiritacr.azurecr.io/sds-reports-api:latest
+          docker pull spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag || github.event.client_payload.rollback_tag }}
+          docker tag spiritacr.azurecr.io/sds-reports-api:${{ github.event.inputs.rollback_tag || github.event.client_payload.rollback_tag }} spiritacr.azurecr.io/sds-reports-api:latest
           docker push spiritacr.azurecr.io/sds-reports-api:latest
