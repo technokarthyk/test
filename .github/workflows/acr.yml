@@ -1,0 +1,26 @@
+name: ACR Push Test (ACR admin)
+on:
+  push:
+    branches:
+         - main
+jobs:
+  push-test:
+    runs-on: ubuntu-latest   # should run in your private runner group if assigned
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker login to ACR (admin user)
+        env:
+          ACR_REG: poalrisvnetacr.azurecr.io
+        run: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login $ACR_REG -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+      - name: Build and push test image
+        env:
+          ACR_REG: <your-acr-name>.azurecr.io
+        run: |
+          IMAGE=$ACR_REG/test-image:github-${{ github.run_id }}
+          echo "Building $IMAGE"
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+ 
