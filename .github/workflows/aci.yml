@@ -26,13 +26,14 @@ jobs:
           tenant-id: ad551a82-94b6-4026-a42c-ff46bc2c92c7
           subscription-id: 1368405a-9b5b-4242-a39b-3b4fe838ad7a
 
-      # 3. Build and push Docker image using ACR Tasks
       - name: Build and Push Docker Image via ACR
         run: |
           az acr build \
             --registry spirittestacr \
             --image sds-datalake:${{ github.sha }} \
             --image sds-datalake:latest \
+            polaris-reporting
+
             .
 
       # 4. Deploy the new image to Azure Container App
