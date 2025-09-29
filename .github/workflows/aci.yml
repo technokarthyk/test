@@ -1,0 +1,51 @@
+name: ACR Build & Deploy to Container App (OIDC + UAMI)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write        # Required for OIDC federated login
+      contents: read         # To checkout code
+
+    steps:
+      # 1. Checkout repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Login to Azure with OIDC via your UAMI (Spirit-mi)
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: 6680082c-e2ec-4fba-b143-8790370bba6f     # Spirit-mi (UAMI) client ID
+          tenant-id: ad551a82-94b6-4026-a42c-ff46bc2c92c7
+          subscription-id: 1368405a-9b5b-4242-a39b-3b4fe838ad7a
+
+      # 3. Login to your ACR using managed identity
+      - name: Docker login to ACR
+        run: |
+          az acr login --name spirittestacr
+
+      # 4. Build & push image to ACR
+      - name: Build and push image
+        env:
+          ACR_REG: spirittestacr.azurecr.io
+        run: |
+          IMAGE=$ACR_REG/containerapp:github-${{ github.run_id }}
+          echo "Building and pushing $IMAGE"
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV   # Save IMAGE as env var for next step
+
+      # 5. Deploy new image to Container App
+      - name: Update Container App
+        run: |
+          az containerapp update \
+            --name containerapp \
+            --resource-group Spirit-dev \
+            --image $IMAGE
