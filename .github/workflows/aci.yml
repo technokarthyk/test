@@ -31,15 +31,11 @@ jobs:
         run: |
           az acr login --name spirittestacr
 
-      - name: Build and push image
-        env:
-          ACR_REG: spirittestacr.azurecr.io
+      - name: Build and Push Docker Image
         run: |
-          IMAGE=$ACR_REG/containerapp:github-${{ github.run_id }}
-          echo "Building and pushing $IMAGE"
-          docker build -f app/Dockerfile -t $IMAGE app/
-          docker push $IMAGE
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          docker build -t spirittestacr.azurecr.io/sds-datalake:${{ github.sha }} .
+          docker tag spirittestacr.azurecr.io/sds-datalake:${{ github.sha }} spirittestacr.azurecr.io/sds-datalake:latest
+          docker push spirittestacr.azurecr.io/sds-datalake:latest
 
 
       # 5. Deploy new image to Container App
