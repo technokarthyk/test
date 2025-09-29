@@ -31,16 +31,16 @@ jobs:
         run: |
           az acr login --name spirittestacr
 
-      # 4. Build & push image to ACR
       - name: Build and push image
         env:
           ACR_REG: spirittestacr.azurecr.io
         run: |
           IMAGE=$ACR_REG/containerapp:github-${{ github.run_id }}
           echo "Building and pushing $IMAGE"
-          docker build -t $IMAGE .
+          docker build -f app/Dockerfile -t $IMAGE app/
           docker push $IMAGE
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV   # Save IMAGE as env var for next step
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
 
       # 5. Deploy new image to Container App
       - name: Update Container App
