@@ -10,38 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write        # Required for OIDC federated login
-      contents: read         # To checkout code
+      id-token: write
+      contents: read
 
     steps:
-      # 1. Checkout repo
-      - name: Checkout
+      # 1. Checkout the repository
+      - name: Checkout source code
         uses: actions/checkout@v4
 
-      # 2. Login to Azure with OIDC via your UAMI (Spirit-mi)
-      - name: Azure login
+      # 2. Login to Azure using OIDC and your UAMI
+      - name: Azure Login with OIDC
         uses: azure/login@v2
         with:
-          client-id: 6680082c-e2ec-4fba-b143-8790370bba6f     # Spirit-mi (UAMI) client ID
+          client-id: 6680082c-e2ec-4fba-b143-8790370bba6f
           tenant-id: ad551a82-94b6-4026-a42c-ff46bc2c92c7
           subscription-id: 1368405a-9b5b-4242-a39b-3b4fe838ad7a
 
-      # 3. Login to your ACR using managed identity
-      - name: Docker login to ACR
+      # 3. Build and push Docker image using ACR Tasks
+      - name: Build and Push Docker Image via ACR
         run: |
-          az acr login --name spirittestacr
+          az acr build \
+            --registry spirittestacr \
+            --image sds-datalake:${{ github.sha }} \
+            --image sds-datalake:latest \
+            .
 
-      - name: Build and Push Docker Image
-        run: |
-          docker build -t spirittestacr.azurecr.io/sds-datalake:${{ github.sha }} .
-          docker tag spirittestacr.azurecr.io/sds-datalake:${{ github.sha }} spirittestacr.azurecr.io/sds-datalake:latest
-          docker push spirittestacr.azurecr.io/sds-datalake:latest
-
-
-      # 5. Deploy new image to Container App
-      - name: Update Container App
+      # 4. Deploy the new image to Azure Container App
+      - name: Deploy to Azure Container App
         run: |
           az containerapp update \
             --name containerapp \
             --resource-group Spirit-dev \
-            --image $IMAGE
+            --image spirittestacr.azurecr.io/sds-datalake:${{ github.sha }}
+
+      # 5. Optional: Check deployment status
+      - name: Verify Container App Health
+        run: |
+          az containerapp show \
+            --name containerapp \
+            --resource-group Spirit-dev \
+            --query properties.latestRevisionHealthState \
+            --output tsv
