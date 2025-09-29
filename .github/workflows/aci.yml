@@ -1,4 +1,4 @@
-name: ACR Build & Deploy to Container App 
+name: ACR Build & Deploy to Container App
 
 on:
   push:
