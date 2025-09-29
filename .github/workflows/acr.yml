@@ -1,26 +1,41 @@
-name: ACR Push Test (ACR admin)
+name: ACR Push Test (OIDC + UAMI)
+
 on:
   push:
     branches:
-         - main
+      - main
+
 jobs:
   push-test:
-    runs-on: ubuntu-latest   # should run in your private runner group if assigned
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write        # Required for OIDC login
+      contents: read         # Checkout code
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Docker login to ACR (admin user)
-        env:
-          ACR_REG: poalrisvnetacr.azurecr.io
+
+      # Login to Azure with OIDC, tied to your UAMI (Spirit-mi)
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: 6680082c-e2ec-4fba-b143-8790370bba6f      # Spirit-mi (UAMI) client ID
+          tenant-id: ad551a82-94b6-4026-a42c-ff46bc2c92c7
+          subscription-id: 1368405a-9b5b-4242-a39b-3b4fe838ad7a
+
+      # Use managed identity to login to your ACR
+      - name: Docker login to ACR (UAMI)
         run: |
-          echo "${{ secrets.ACR_PASSWORD }}" | docker login $ACR_REG -u "${{ secrets.ACR_USERNAME }}" --password-stdin
+          az acr login --name spirittestacr
+
+      # Build and push image
       - name: Build and push test image
         env:
-          ACR_REG: <your-acr-name>.azurecr.io
+          ACR_REG: spirittestacr.azurecr.io
         run: |
           IMAGE=$ACR_REG/test-image:github-${{ github.run_id }}
           echo "Building $IMAGE"
           docker build -t $IMAGE .
           docker push $IMAGE
-
- 
