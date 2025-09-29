@@ -1,4 +1,4 @@
-name: ACR Build & Deploy to Container App (OIDC + UAMI)
+name: ACR Build & Deploy to Container App 
 
 on:
   push:
